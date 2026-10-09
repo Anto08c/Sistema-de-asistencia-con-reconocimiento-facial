@@ -1,0 +1,770 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FaceControl | Asistencia</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f6fa;
+            color: #202b3c;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        aside {
+            width: 235px;
+            background: #17243a;
+            color: white;
+            padding: 26px 16px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 0 10px 8px;
+        }
+
+        .subtitle {
+            color: #aab8cc;
+            font-size: 12px;
+            margin: 0 10px 35px;
+        }
+
+        .nav-title {
+            color: #8fa0b9;
+            font-size: 11px;
+            margin: 24px 10px 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: 0;
+            background: transparent;
+            color: #d7dfec;
+            padding: 13px 12px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-button:hover,
+        .nav-button.active {
+            background: #304665;
+            color: white;
+        }
+
+        main {
+            flex: 1;
+            min-width: 0;
+            padding: 30px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            font-size: 27px;
+            margin-bottom: 7px;
+        }
+
+        .muted {
+            color: #78869a;
+            font-size: 14px;
+        }
+
+        .status {
+            background: #e1f7eb;
+            color: #18784a;
+            padding: 9px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card, .panel {
+            background: white;
+            border: 1px solid #e8edf3;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 3px 12px #20304a08;
+        }
+
+        .stat-label {
+            color: #78869a;
+            font-size: 13px;
+        }
+
+        .stat-number {
+            font-size: 30px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .panel {
+            margin-bottom: 22px;
+        }
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        h2 {
+            font-size: 17px;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        .primary-button {
+            border: 0;
+            background: #315fe8;
+            color: white;
+            border-radius: 7px;
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+
+        .primary-button:hover {
+            background: #254bc0;
+        }
+
+        .search {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px 12px;
+            border: 1px solid #dce3ed;
+            border-radius: 7px;
+            outline-color: #315fe8;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        th {
+            text-align: left;
+            color: #77859a;
+            font-weight: 600;
+            background: #f8fafc;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .pill {
+            display: inline-block;
+            border-radius: 20px;
+            padding: 5px 9px;
+            font-size: 11px;
+            background: #e1f7eb;
+            color: #18784a;
+        }
+
+        .pill.inactive {
+            background: #fee9e7;
+            color: #b42318;
+        }
+
+        .empty {
+            text-align: center;
+            color: #78869a;
+            padding: 28px;
+        }
+
+        .notice {
+            color: #78869a;
+            font-size: 12px;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #mensaje {
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #b42318;
+        }
+
+        @media (max-width: 850px) {
+            .layout {
+                display: block;
+            }
+
+            aside {
+                width: 100%;
+                padding: 18px;
+            }
+
+            .subtitle {
+                margin-bottom: 15px;
+            }
+
+            .nav-title {
+                display: none;
+            }
+
+            nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .nav-button {
+                width: auto;
+                margin: 0;
+            }
+
+            main {
+                padding: 20px 14px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .panel-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="layout">
+
+    <aside>
+        <div class="brand">◈ FaceControl</div>
+        <div class="subtitle">Sistema de asistencia facial</div>
+
+        <div class="nav-title">Menú principal</div>
+
+        <nav>
+            <button class="nav-button active"
+                    onclick="mostrarSeccion('inicio', this)">
+                ▦ &nbsp; Panel principal
+            </button>
+
+            <button class="nav-button"
+                    onclick="mostrarSeccion('empleados', this)">
+                ♙ &nbsp; Empleados
+            </button>
+
+            <button class="nav-button"
+                    onclick="mostrarSeccion('asistencias', this)">
+                ▤ &nbsp; Asistencias
+            </button>
+        </nav>
+    </aside>
+
+    <main>
+        <header>
+            <div>
+                <h1 id="titulo">Panel principal</h1>
+                <p class="muted">
+                    Sistema de control de asistencia de empleados
+                </p>
+            </div>
+
+            <div class="status">● Panel disponible</div>
+        </header>
+
+        <p id="mensaje"></p>
+
+        <section id="seccion-inicio">
+            <div class="stats">
+                <div class="card">
+                    <div class="stat-label">Empleados registrados</div>
+                    <div class="stat-number" id="totalEmpleados">—</div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-label">Empleados activos</div>
+                    <div class="stat-number" id="totalActivos">—</div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-label">Marcaciones de hoy</div>
+                    <div class="stat-number" id="totalHoy">—</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-heading">
+                    <h2>Últimas asistencias</h2>
+                    <button class="primary-button" onclick="cargarDatos()">
+                        Actualizar datos
+                    </button>
+                </div>
+
+                <div id="tablaResumen"></div>
+
+                <p class="notice">
+                    Los datos se consultan desde la base de datos del sistema.
+                </p>
+            </div>
+        </section>
+
+        <section id="seccion-empleados" class="hidden">
+            <div class="panel">
+                <div class="panel-heading">
+                    <h2>Directorio de empleados</h2>
+
+                    <button class="primary-button" onclick="alternarFormulario()">
+                        + Nuevo empleado
+                    </button>
+                </div>
+
+                <form id="formEmpleado" class="hidden"
+                    onsubmit="guardarEmpleado(event)"
+                    style="margin-bottom:20px">
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+                        <input class="search" id="codigo" placeholder="Código" required>
+                        <input class="search" id="nombres" placeholder="Nombres" required>
+                        <input class="search" id="apellidos" placeholder="Apellidos" required>
+                    </div>
+
+                    <button class="primary-button" type="submit" style="margin-top:12px">
+                        Guardar empleado
+                    </button>
+
+                    <button class="primary-button" type="button"
+                            onclick="alternarFormulario()"
+                            style="background:#68778b;margin-top:12px">
+                        Cancelar
+                    </button>
+                </form>
+
+                <p id="mensajeEmpleado" style="margin-bottom:15px"></p>
+
+                <input id="buscarEmpleado" class="search"
+                    placeholder="Buscar por código o nombre..."
+                    oninput="mostrarEmpleados()"
+                    style="margin-bottom:18px">
+
+                <div id="tablaEmpleados"></div>
+            </div>
+        </section>
+
+        <section id="seccion-asistencias" class="hidden">
+            <div class="panel">
+                <div class="panel-heading">
+                    <h2>Marcación facial</h2>
+                    <button class="primary-button" onclick="activarCamara()">
+                        Activar cámara
+                    </button>
+                </div>
+
+                <video id="camara" autoplay playsinline
+                    style="width:100%;max-width:600px;background:#17243a;border-radius:12px">
+                </video>
+
+                <canvas id="captura" class="hidden"></canvas>
+
+                <p id="mensajeCamara" style="margin:15px 0"></p>
+
+                <button class="primary-button"
+                    onclick="marcarAsistencia('entrada')">
+                    Registrar entrada
+                </button>
+
+                <button class="primary-button"
+                    onclick="marcarAsistencia('salida')"
+                    style="background:#18784a">
+                    Registrar salida
+                </button>
+            </div>
+
+            <div class="panel">
+                <div class="panel-heading">
+                    <h2>Historial de asistencias</h2>
+                    <button class="primary-button" onclick="cargarDatos()">
+                        Actualizar
+                    </button>
+                </div>
+                <div id="tablaAsistencias"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    let empleados = [];
+    let asistencias = [];
+    let flujoCamara = null;
+
+    async function activarCamara() {
+        const video = document.getElementById("camara");
+        const mensaje = document.getElementById("mensajeCamara");
+
+        try {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                throw new Error("El navegador no permite acceder a la cámara.");
+            }
+
+            if (flujoCamara) {
+                flujoCamara.getTracks().forEach(track => track.stop());
+            }
+
+            flujoCamara = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" },
+                audio: false
+            });
+
+            video.srcObject = flujoCamara;
+            await video.play();
+
+            mensaje.textContent = "Cámara activa. Coloca un solo rostro frente a ella.";
+        } catch (error) {
+            mensaje.textContent = "No se pudo activar la cámara: " + error.message;
+            console.error(error);
+        }
+    }
+
+    async function marcarAsistencia(tipo) {
+        const video = document.getElementById("camara");
+        const canvas = document.getElementById("captura");
+        const mensaje = document.getElementById("mensajeCamara");
+
+        if (!flujoCamara || !video.videoWidth) {
+            mensaje.textContent = "Primero activa la cámara.";
+            return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        const contexto = canvas.getContext("2d");
+        contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imagen = canvas.toDataURL("image/jpeg", 0.9);
+
+        mensaje.textContent = "Verificando rostro...";
+
+        try {
+            const respuesta = await fetch("/asistencia/facial", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ imagen, tipo })
+            });
+
+            const resultado = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(resultado.detail || "Error del servidor.");
+            }
+
+            mensaje.textContent = resultado.ok
+                ? `${resultado.mensaje} ${resultado.empleado || ""} ${resultado.codigo ? "(" + resultado.codigo + ")" : ""}`
+                : resultado.mensaje;
+
+            if (resultado.ok) {
+                await cargarDatos();
+            }
+        } catch (error) {
+            mensaje.textContent = "Error al registrar: " + error.message;
+            console.error(error);
+        }
+    }
+
+    function escapar(valor) {
+        return String(valor ?? "").replace(/[&<>"']/g, caracter => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[caracter]);
+    }
+
+    function mostrarSeccion(seccion, boton) {
+        ["inicio", "empleados", "asistencias"].forEach(nombre => {
+            document.getElementById("seccion-" + nombre)
+                .classList.toggle("hidden", nombre !== seccion);
+        });
+
+        document.querySelectorAll(".nav-button").forEach(elemento => {
+            elemento.classList.remove("active");
+        });
+
+        boton.classList.add("active");
+
+        document.getElementById("titulo").textContent = {
+            inicio: "Panel principal",
+            empleados: "Empleados",
+            asistencias: "Asistencias"
+        }[seccion];
+    }
+
+    function tablaAsistencia(datos) {
+        if (!datos.length) {
+            return '<div class="empty">Todavía no hay marcaciones registradas.</div>';
+        }
+
+        return `
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Empleado</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${datos.map(a => `
+                            <tr>
+                                <td>${escapar(a.codigo)}</td>
+                                <td>${escapar(a.nombres)} ${escapar(a.apellidos)}</td>
+                                <td>${escapar(a.fecha)}</td>
+                                <td>${escapar(a.hora)}</td>
+                                <td>
+                                    <span class="pill">
+                                        ${escapar(a.tipo)}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function mostrarEmpleados() {
+        const busqueda = (
+            document.getElementById("buscarEmpleado")?.value || ""
+        ).toLowerCase();
+
+        const filtrados = empleados.filter(e =>
+            `${e.codigo} ${e.nombres} ${e.apellidos}`
+                .toLowerCase().includes(busqueda)
+        );
+
+        if (!filtrados.length) {
+            document.getElementById("tablaEmpleados").innerHTML =
+                '<div class="empty">No se encontraron empleados.</div>';
+            return;
+        }
+
+        document.getElementById("tablaEmpleados").innerHTML = `
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombres</th>
+                            <th>Apellidos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtrados.map(e => `
+                            <tr>
+                                <td>${escapar(e.codigo)}</td>
+                                <td>${escapar(e.nombres)}</td>
+                                <td>${escapar(e.apellidos)}</td>
+                                <td>
+                                    <span class="pill ${e.estado === "activo" ? "" : "inactive"}">
+                                        ${escapar(e.estado)}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="primary-button"
+                                        onclick="cambiarEstado(
+                                            ${Number(e.id)},
+                                            '${e.estado === "activo" ? "inactivo" : "activo"}'
+                                        )">
+                                        ${e.estado === "activo" ? "Desactivar" : "Activar"}
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async function cargarDatos() {
+        const mensaje = document.getElementById("mensaje");
+        mensaje.textContent = "";
+
+        try {
+            const [respuestaEmpleados, respuestaAsistencias] =
+                await Promise.all([
+                    fetch("/empleados"),
+                    fetch("/asistencias")
+                ]);
+
+            if (!respuestaEmpleados.ok || !respuestaAsistencias.ok) {
+                throw new Error("La API devolvió un error.");
+            }
+
+            empleados = await respuestaEmpleados.json();
+            asistencias = await respuestaAsistencias.json();
+
+            document.getElementById("totalEmpleados").textContent =
+                empleados.length;
+
+            document.getElementById("totalActivos").textContent =
+                empleados.filter(e => e.estado === "activo").length;
+
+            const fechaHoy = new Date();
+            const hoy = [
+                fechaHoy.getFullYear(),
+                String(fechaHoy.getMonth() + 1).padStart(2, "0"),
+                String(fechaHoy.getDate()).padStart(2, "0")
+            ].join("-");
+
+            document.getElementById("totalHoy").textContent =
+                asistencias.filter(a => a.fecha === hoy).length;
+
+            document.getElementById("tablaResumen").innerHTML =
+                tablaAsistencia(asistencias.slice(0, 5));
+
+            document.getElementById("tablaAsistencias").innerHTML =
+                tablaAsistencia(asistencias);
+
+            mostrarEmpleados();
+
+        } catch (error) {
+            mensaje.textContent =
+                "No se pudieron cargar los datos. Comprueba que el servidor esté activo.";
+            console.error(error);
+        }
+    }
+
+    function alternarFormulario() {
+        document.getElementById("formEmpleado")
+            .classList.toggle("hidden");
+    }
+
+    async function guardarEmpleado(event) {
+        event.preventDefault();
+
+        const mensaje = document.getElementById("mensajeEmpleado");
+        mensaje.textContent = "Guardando empleado...";
+
+        const datos = {
+            codigo: document.getElementById("codigo").value.trim(),
+            nombres: document.getElementById("nombres").value.trim(),
+            apellidos: document.getElementById("apellidos").value.trim()
+        };
+
+        try {
+            const respuesta = await fetch("/empleados", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(datos)
+            });
+
+            const resultado = await respuesta.json();
+            mensaje.textContent = resultado.mensaje;
+
+            if (resultado.ok) {
+                document.getElementById("formEmpleado").reset();
+                document.getElementById("formEmpleado")
+                    .classList.add("hidden");
+
+                await cargarDatos();
+            }
+        } catch (error) {
+            mensaje.textContent = "No se pudo conectar con el servidor.";
+            console.error(error);
+        }
+    }
+
+    async function cambiarEstado(id, estado) {
+        if (!confirm(`¿Deseas cambiar el estado a ${estado}?`)) {
+            return;
+        }
+
+        try {
+            const respuesta = await fetch(`/empleados/${id}/estado`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ estado })
+            });
+
+            const resultado = await respuesta.json();
+            alert(resultado.mensaje);
+
+            if (resultado.ok) {
+                await cargarDatos();
+            }
+        } catch (error) {
+            alert("No se pudo actualizar el empleado.");
+            console.error(error);
+        }
+    }
+
+    cargarDatos();
+</script>
+</body>
+</html>
