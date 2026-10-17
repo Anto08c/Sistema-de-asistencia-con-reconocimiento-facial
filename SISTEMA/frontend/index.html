@@ -378,6 +378,24 @@
                         <input class="search" id="codigo" placeholder="Código" required>
                         <input class="search" id="nombres" placeholder="Nombres" required>
                         <input class="search" id="apellidos" placeholder="Apellidos" required>
+
+                    </div>
+                    <div style="margin-top:16px">
+                        <video id="camaraRegistro"
+                            autoplay playsinline
+                            style="width:100%;max-width:450px;background:#17243a;border-radius:10px">
+                        </video>
+
+                        <canvas id="capturaRegistro" class="hidden"></canvas>
+
+                        <div style="margin-top:10px">
+                            <button type="button" class="primary-button"
+                                onclick="activarCamaraRegistro()">
+                                Activar cámara
+                            </button>
+                        </div>
+
+                        <p id="mensajeRostro" style="margin-top:10px"></p>
                     </div>
 
                     <button class="primary-button" type="submit" style="margin-top:12px">
@@ -448,7 +466,7 @@
     let empleados = [];
     let asistencias = [];
     let flujoCamara = null;
-
+    let flujoCamaraRegistro = null;
     async function activarCamara() {
         const video = document.getElementById("camara");
         const mensaje = document.getElementById("mensajeCamara");
@@ -701,42 +719,87 @@
             .classList.toggle("hidden");
     }
 
+    async function activarCamaraRegistro() {
+        const video = document.getElementById("camaraRegistro");
+        const mensaje = document.getElementById("mensajeRostro");
+
+        try {
+            flujoCamaraRegistro = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" },
+                audio: false
+            });
+
+            video.srcObject = flujoCamaraRegistro;
+            await video.play();
+
+            mensaje.textContent = "Cámara activa. Coloca un solo rostro frente a ella.";
+        } catch (error) {
+            mensaje.textContent = "No se pudo activar la cámara: " + error.message;
+        }
+    }
+
     async function guardarEmpleado(event) {
         event.preventDefault();
 
+        const video = document.getElementById("camaraRegistro");
+        const canvas = document.getElementById("capturaRegistro");
         const mensaje = document.getElementById("mensajeEmpleado");
-        mensaje.textContent = "Guardando empleado...";
+        const mensajeRostro = document.getElementById("mensajeRostro");
+
+        if (!flujoCamaraRegistro || !video.videoWidth) {
+            mensajeRostro.textContent = "Activa la cámara antes de registrar.";
+            return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        canvas.getContext("2d").drawImage(
+            video, 0, 0, canvas.width, canvas.height
+        );
 
         const datos = {
             codigo: document.getElementById("codigo").value.trim(),
             nombres: document.getElementById("nombres").value.trim(),
-            apellidos: document.getElementById("apellidos").value.trim()
+            apellidos: document.getElementById("apellidos").value.trim(),
+            imagen: canvas.toDataURL("image/jpeg", 0.9)
         };
 
+        mensaje.textContent = "Registrando empleado y rostro...";
+
         try {
-            const respuesta = await fetch("/empleados", {
+            const respuesta = await fetch("/empleados/con-rostro", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(datos)
             });
 
             const resultado = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(resultado.detail || "No se pudo registrar.");
+            }
+
             mensaje.textContent = resultado.mensaje;
 
-            if (resultado.ok) {
-                document.getElementById("formEmpleado").reset();
-                document.getElementById("formEmpleado")
-                    .classList.add("hidden");
+            document.getElementById("formEmpleado").reset();
 
-                await cargarDatos();
+            if (flujoCamaraRegistro) {
+                flujoCamaraRegistro.getTracks().forEach(track => track.stop());
+                flujoCamaraRegistro = null;
             }
+
+            video.srcObject = null;
+            document.getElementById("formEmpleado").classList.add("hidden");
+
+            await cargarDatos();
+
         } catch (error) {
-            mensaje.textContent = "No se pudo conectar con el servidor.";
+            mensaje.textContent = error.message;
             console.error(error);
         }
     }
+
 
     async function cambiarEstado(id, estado) {
         if (!confirm(`¿Deseas cambiar el estado a ${estado}?`)) {

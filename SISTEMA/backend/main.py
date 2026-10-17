@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -76,6 +75,11 @@ class MarcacionFacial(BaseModel):
     imagen: str
     tipo: str
 
+class EmpleadoConRostro(BaseModel):
+    codigo: str
+    nombres: str
+    apellidos: str
+    imagen: str
 
 @app.get("/")
 def inicio():
@@ -221,10 +225,86 @@ def marcar_asistencia_facial(datos: MarcacionFacial):
         }
 
     except HTTPException:
-       git raise
+       raise
     except Exception as error:
         print("Error en marcación facial:", error)
         raise HTTPException(
             status_code=500,
             detail="Ocurrió un error al procesar la marcación."
         )
+    
+@app.post("/empleados/con-rostro")
+def registrar_empleado_con_rostro(datos: EmpleadoConRostro):
+    try:
+        # Decodificar imagen enviada por el navegador
+        imagen_base64 = datos.imagen.split(",")[-1]
+        contenido = base64.b64decode(imagen_base64, validate=True)
+        arreglo = np.frombuffer(contenido, dtype=np.uint8)
+        imagen = cv2.imdecode(arreglo, cv2.IMREAD_COLOR)
+
+        if imagen is None:
+            raise HTTPException(400, "No se pudo leer la imagen.")
+
+        # Detectar el rostro
+        rostros = analizador_facial.get(imagen)
+
+        if len(rostros) == 0:
+            raise HTTPException(400, "No se detectó ningún rostro.")
+
+        if len(rostros) > 1:
+            raise HTTPException(
+                400, "Debe aparecer una sola persona en la cámara."
+            )
+
+        embedding = rostros[0].embedding.astype(np.float32)
+
+        ruta_bd = (
+            Path(__file__).resolve().parent.parent
+            / "datos" / "asistencia.db"
+        )
+
+        with sqlite3.connect(ruta_bd) as conexion:
+            cursor = conexion.execute(
+                """
+                INSERT INTO empleados
+                    (codigo, nombres, apellidos, estado)
+                VALUES (?, ?, ?, 'activo')
+                """,
+                (
+                    datos.codigo.strip(),
+                    datos.nombres.strip(),
+                    datos.apellidos.strip()
+                )
+            )
+
+            empleado_id = cursor.lastrowid
+
+            conexion.execute(
+                """
+                INSERT INTO rostros (empleado_id, embedding)
+                VALUES (?, ?)
+                """,
+                (empleado_id, embedding.tobytes())
+            )
+
+        return {
+            "ok": True,
+            "mensaje": "Empleado y rostro registrados correctamente.",
+            "empleado_id": empleado_id
+        }
+
+    except sqlite3.IntegrityError:
+        raise HTTPException(
+            status_code=409,
+            detail="El código del empleado ya existe."
+        )
+    except HTTPException:
+        raise
+    except Exception as error:
+        print("Error al registrar empleado y rostro:", error)
+        raise HTTPException(
+            status_code=500,
+            detail="No se pudo completar el registro."
+        )
+
+    
