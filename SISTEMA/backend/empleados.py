@@ -1,17 +1,5 @@
-
-import sqlite3
-from pathlib import Path
-
-# Ubicación de la base de datos
-RUTA_BD = Path(__file__).resolve().parent.parent / "datos" / "asistencia.db"
-
-
-def conectar():
-    conexion = sqlite3.connect(RUTA_BD)
-    conexion.row_factory = sqlite3.Row
-    conexion.execute("PRAGMA foreign_keys = ON")
-    return conexion
-
+import pymysql
+from backend.conexion import obtener_conexion
 
 def registrar_empleado(codigo, nombres, apellidos):
     codigo = codigo.strip().upper()
@@ -21,50 +9,77 @@ def registrar_empleado(codigo, nombres, apellidos):
     if not codigo or not nombres or not apellidos:
         return False, "Todos los campos son obligatorios."
 
+    conexion =  obtener_conexion()
+
     try:
-        with conectar() as conexion:
-            conexion.execute(
+        with conexion.cursor() as cursor:
+            cursor.execute(
                 """
                 INSERT INTO empleados (codigo, nombres, apellidos)
-                VALUES (?, ?, ?)
+                VALUES (%s, %s, %s)
                 """,
                 (codigo, nombres, apellidos)
             )
-
+        conexion.commit()
         return True, "Empleado registrado correctamente."
 
-    except sqlite3.IntegrityError:
-        return False, "El código ya existe o los datos no son válidos."
+    except pymysql.err.IntegrityError:
+        conexion.rollback()
+        return False, "El codigo del empleado ya existe. Por favor, use un codigo diferente."
 
+    except Exception as error:
+        conexion.rollback()
+        print("Error al registrar empleado:", error)
+        return False ,"No se pudo registrar el empleado."
+    finally:
+        conexion.close()
 
 def listar_empleados():
-    with conectar() as conexion:
-        empleados = conexion.execute(
-            """
-            SELECT id, codigo, nombres, apellidos, estado
-            FROM empleados
-            ORDER BY id DESC
-            """
-        ).fetchall()
+    conexion = obtener_conexion()
 
-    return [dict(empleado) for empleado in empleados]
-
+    try: 
+        with conexion.cursor() as cursor: 
+            cursor.execute(
+                """
+                SELECT id, codigo, nombres, apellidos, estado FROM empleados
+                ORDER BY id DESC
+                """
+            )
+            return cursor.fetchall()
+    finally:
+        conexion.close()
 
 def cambiar_estado_empleado(empleado_id, nuevo_estado):
     if nuevo_estado not in ("activo", "inactivo"):
         return False, "Estado no válido."
 
-    with conectar() as conexion:
-        cursor = conexion.execute(
-            """
-            UPDATE empleados
-            SET estado = ?
-            WHERE id = ?
+    conexion = obtener_conexion()
+
+    try: 
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """UPDATE empleados 
+                SET estado = %s
+                WHERE id = %s
             """,
             (nuevo_estado, empleado_id)
-        )
+            )
 
-        if cursor.rowcount == 0:
-            return False, "No se encontró el empleado."
+            if cursor.rowcount == 0:
+                cursor.execute(
+                    "SELECT id FROM empleados WHERE id = %s",
+                    (empleado_id)
+                )
 
-    return True, "Estado actualizado correctamente."
+                if cursor.fetchone() is None:
+                    return False, "No se encontró el empleado."
+        conexion.commit()
+        return True, "Estado actualizado correctamente."
+    
+    except Exception as error:
+        conexion.rollback()
+        print("Error al cambiar estado", error)
+        return False, "No se pudo actualizar el estado."
+
+    finally:
+        conexion.close()

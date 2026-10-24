@@ -1,19 +1,11 @@
 
-import sqlite3
-from pathlib import Path
-
 import cv2
 import numpy as np
+
 from insightface.app import FaceAnalysis
+from backend.conexion import obtener_conexion
 
-# Ubicación de la base de datos
-RUTA_BD = (
-    Path(__file__).resolve().parent.parent
-    / "datos"
-    / "asistencia.db"
-)
 
-# Cargar el modelo de reconocimiento facial
 modelo = FaceAnalysis(
     name="buffalo_l",
     providers=["CPUExecutionProvider"]
@@ -24,27 +16,36 @@ modelo.prepare(ctx_id=0, det_size=(640, 640))
 def registrar_rostro():
     codigo = input("Código del empleado: ").strip().upper()
 
-    # Buscar al empleado y comprobar que esté activo
-    with sqlite3.connect(RUTA_BD) as conexion:
-        conexion.execute("PRAGMA foreign_keys = ON")
+    conexion = obtener_conexion()
 
-        empleado = conexion.execute(
-            """
-            SELECT id, nombres, apellidos
-            FROM empleados
-            WHERE codigo = ? AND estado = 'activo'
-            """,
-            (codigo,)
-        ).fetchone()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT id, nombres, apellidos
+                FROM empleados
+                WHERE codigo = %s AND estado = 'activo'
+                """,
+                (codigo,)
+            )
+            empleado = cursor.fetchone()
+
+    finally:
+        conexion.close()
 
     if empleado is None:
         print("No existe un empleado activo con ese código.")
         return
 
-    empleado_id, nombres, apellidos = empleado
-    print(f"Empleado: {nombres} {apellidos}")
+    empleado_id = empleado["id"]
+
+    print(
+        "Empleado:",
+        empleado["nombres"],
+        empleado["apellidos"]
+    )
     print("Coloca tu rostro frente a la cámara.")
-    print("Presiona ESPACIO para capturar o ESC para cancelar.")
+    print("ESPACIO = capturar | ESC = cancelar")
 
     camara = cv2.VideoCapture(0)
 
@@ -83,21 +84,18 @@ def registrar_rostro():
             cv2.imshow("Registro facial", frame)
             tecla = cv2.waitKey(1) & 0xFF
 
-            if tecla == 27:  # ESC para cancelar
+            if tecla == 27:
                 break
 
-            if tecla == 32:  # ESPACIO para capturar
+            if tecla == 32:
                 if len(rostros) != 1:
-                    print(
-                        "Debe aparecer exactamente un rostro. "
-                        "Intenta nuevamente."
-                    )
+                    print("Debe aparecer exactamente un rostro.")
                     continue
 
-                embedding = rostros[0].normed_embedding
                 embedding_guardado = np.asarray(
-                    embedding, dtype=np.float32
-                )
+                    rostros[0].normed_embedding,
+                    dtype=np.float32
+                ).copy()
                 break
 
     finally:
@@ -108,20 +106,27 @@ def registrar_rostro():
         print("Registro facial cancelado o no completado.")
         return
 
-    # Guardar el embedding asociado al empleado
-    with sqlite3.connect(RUTA_BD) as conexion:
-        conexion.execute(
-            """
-            INSERT INTO rostros (empleado_id, embedding)
-            VALUES (?, ?)
-            """,
-            (
-                empleado_id,
-                sqlite3.Binary(embedding_guardado.tobytes())
-            )
-        )
+    conexion = obtener_conexion()
 
-    print("Rostro registrado correctamente.")
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO rostros (empleado_id, embedding)
+                VALUES (%s, %s)
+                """,
+                (empleado_id, embedding_guardado.tobytes())
+            )
+
+        conexion.commit()
+        print("Rostro registrado correctamente en MySQL.")
+
+    except Exception as error:
+        conexion.rollback()
+        print("Error al guardar el rostro:", error)
+
+    finally:
+        conexion.close()
 
 
 if __name__ == "__main__":

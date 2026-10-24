@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FaceControl | Asistencia</title>
+    <title>FaceControl | Asistencia Alma Bambu</title>
 
     <style>
         * {
@@ -16,7 +16,7 @@
         body {
             font-family: "Segoe UI", Arial, sans-serif;
             background: #f4f6fa;
-            color: #202b3c;
+            color: #203c22;
         }
 
         .layout {
@@ -26,7 +26,7 @@
 
         aside {
             width: 235px;
-            background: #17243a;
+            background: #193a17;
             color: white;
             padding: 26px 16px;
             flex-shrink: 0;
@@ -39,13 +39,13 @@
         }
 
         .subtitle {
-            color: #aab8cc;
+            color: #acccaa;
             font-size: 12px;
             margin: 0 10px 35px;
         }
 
         .nav-title {
-            color: #8fa0b9;
+            color: #99b98f;
             font-size: 11px;
             margin: 24px 10px 10px;
             text-transform: uppercase;
@@ -58,7 +58,7 @@
             text-align: left;
             border: 0;
             background: transparent;
-            color: #d7dfec;
+            color: #d7ecd9;
             padding: 13px 12px;
             margin-bottom: 5px;
             border-radius: 8px;
@@ -68,7 +68,7 @@
 
         .nav-button:hover,
         .nav-button.active {
-            background: #304665;
+            background: #406530;
             color: white;
         }
 
@@ -92,7 +92,7 @@
         }
 
         .muted {
-            color: #78869a;
+            color: #789a80;
             font-size: 14px;
         }
 
@@ -117,11 +117,11 @@
             border: 1px solid #e8edf3;
             border-radius: 12px;
             padding: 22px;
-            box-shadow: 0 3px 12px #20304a08;
+            box-shadow: 0 3px 12px #214a2008;
         }
 
         .stat-label {
-            color: #78869a;
+            color: #7a9a78;
             font-size: 13px;
         }
 
@@ -309,6 +309,9 @@
                     onclick="mostrarSeccion('asistencias', this)">
                 ▤ &nbsp; Asistencias
             </button>
+
+
+
         </nav>
     </aside>
 
@@ -404,6 +407,36 @@
 
         <section id="seccion-asistencias" class="hidden">
             <div class="panel">
+                <h2>Exportar asistencias</h2>
+                <form id="formExportarAsistencias">
+                    <div>
+                        <label for="fecha_desde">Fecha desde:</label>
+                        <input
+                            type="date"
+                            id="fecha_desde"
+                            name="fecha_desde"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="fecha_hasta">Fecha hasta:</label>
+                        <input
+                            type="date"
+                            id="fecha_hasta"
+                            name="fecha_hasta"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit">
+                        Descargar CSV
+                    </button>
+                </form>
+
+                <p id="mensajeExportacion"></p>                
+            </div>
+            <div class="panel">
                 <div class="panel-heading">
                     <h2>Marcación facial</h2>
                     <button class="primary-button" onclick="activarCamara()">
@@ -440,9 +473,6 @@
                 </div>
                 <div id="tablaAsistencias"></div>
             </div>
-        </section>
-    </main>
-</div>
 
 <script>
     let empleados = [];

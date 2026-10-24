@@ -9,6 +9,6 @@ class FiltroExportacionAsistencias(BaseModel):
     def validar_rango_fechas(self):
         if self.fecha_desde > self.fecha_hasta:
             raise ValueError(
-                "La fecja inicial no puede ser posterior a la fecha final"
+                "La fecha inicial no puede ser posterior a la fecha final"
             )
         return self
